@@ -1,0 +1,16 @@
+services:
+  bottle-helloworld:
+    build: .
+    container_name: bottle-helloworld
+    labels:
+      - traefik.http.routers.helloworld.rule=PathPrefix(`/helloworld`) || Host(`helloworld.localhost`)
+      - traefik.enable=true
+    ports:
+      - 8081:8081
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy
+    external: true

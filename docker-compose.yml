@@ -1,0 +1,42 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    ports:
+      - 80:80
+      - 8080:8080
+      - 443:443
+    networks:
+      - proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs/:/logs/
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.network=proxy
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --accesslog=true
+      - --accesslog.filePath=/logs/access.log
+      - --log=true
+      - --log.filepath=/logs/traefik.log
+      - --log.level=DEBUG
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mydashboard.rule=Host(`traefik.example.com`)
+      - traefik.http.routers.mydashboard.service=api@internal
+      - traefik.http.routers.mydashboard.middlewares=myauth
+
+  whoami:
+    image: traefik/whoami
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mywhoami.rule=PathPrefix(`/whoami`)
+      - traefik.http.services.mywhoami.loadbalancer.server.port=80
+    
+networks:
+  proxy:
+    name: proxy
